@@ -2,6 +2,7 @@ import argparse
 import subprocess
 import os
 
+
 # Array of File objects
 files = []
 islands = []
@@ -11,6 +12,10 @@ class File(object):
     def __init__(self,fileName):
         self.fileName = fileName # file path
         self.si = ""             # storage island to copy to
+        
+        
+    def moveFile(self):
+        subprocess.call(['rsync','-r', self.fileName, self.si])
         
 
 # Build array of file objects from source 
@@ -28,6 +33,8 @@ if __name__ == '__main__':
     
     # Add parameters positional/optional(--)
     parser.add_argument('source', help="Source")
+    #parser.add_argument('destination', help="Destination")
+    
     
     
     # Parse the arguments
@@ -57,18 +64,18 @@ if __name__ == '__main__':
         
     
     
-        
-        
-    
+    # TODO: Implement threaded rsync -- https://github.com/jbd/msrsync
     
     # create subprocess to run rsync
     for file in files:
-        subprocess.call(['rsync','-r', file.fileName, file.si])
+        #subprocess.call(['rsync','-r', file.fileName, file.si])
+        #subprocess.call(['msrsync', '-p','4', file.fileName, file.si])
+        file.moveFile()
         print('Transferring ', file.fileName,' to ', file.si)
     
     
    
-    
+    # TODO: Implement checksum after rsync complete -- hashlib?   
     
     
     
