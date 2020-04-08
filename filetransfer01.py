@@ -49,7 +49,7 @@ if __name__ == '__main__':
     for entry in os.scandir('/home/pi/TestStorage'):
         islands.append(entry.path)
         
-    print(len(islands))
+    print("Number of storage islands available: ",len(islands))
     
     currentIsland = 0   
     # TODO: for storageIslands in /TestStorage assign a si to each file in files array
@@ -65,14 +65,17 @@ if __name__ == '__main__':
         
     
     
-    
-    
+    threads = []
+
     # create subprocess to run rsync
     for file in files:
         t = threading.Thread(target=file.moveFile)
         t.start()
-        t.join()
+        threads.append(t)
         print('Copying ', file.fileName,' to ', file.si)
+        
+    for thread in threads:
+        thread.join()
     
     
    
