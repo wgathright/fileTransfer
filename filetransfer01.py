@@ -1,6 +1,7 @@
 import argparse
 import subprocess
 import os
+import threading
 
 
 # Array of File objects
@@ -64,14 +65,14 @@ if __name__ == '__main__':
         
     
     
-    # TODO: Implement threaded rsync -- https://github.com/jbd/msrsync
+    
     
     # create subprocess to run rsync
     for file in files:
-        #subprocess.call(['rsync','-r', file.fileName, file.si])
-        #subprocess.call(['msrsync', '-p','4', file.fileName, file.si])
-        file.moveFile()
-        print('Transferring ', file.fileName,' to ', file.si)
+        t = threading.Thread(target=file.moveFile)
+        t.start()
+        t.join()
+        print('Copying ', file.fileName,' to ', file.si)
     
     
    
