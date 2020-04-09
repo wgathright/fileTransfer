@@ -12,8 +12,9 @@ islands = []
 # Create File class
 class File(object):
     def __init__(self,fileName):
-        self.fileName = fileName # file path
+        self.fileName = fileName # file path to original
         self.si = ""             # storage island to copy to
+        self.copyFullPath = ""   # file path to copy (si + /file)
         self.originalMD5 = ""
         self.copyMD5 = ""
         
@@ -27,11 +28,18 @@ class File(object):
             fileContents = openedFile.read()
             md5Returned = hashlib.md5(fileContents).hexdigest()
             return md5Returned
+        
+    def makeCopyPath(self):
+        headTail = os.path.split(self.fileName)
+        tail = headTail[1]
+        self.copyFullPath = self.si + '/' + tail
+        
             
         
         
 
-# Build array of file objects from source 
+# Build array of file objects from source
+#TODO: allow function to accept a list of files instead of a directory
 def buildList(sourceDirectory):
     for entry in os.scandir(sourceDirectory):
         files.append(File(entry.path))
@@ -58,7 +66,8 @@ if __name__ == '__main__':
     
     buildList(mySource)
         
-    # Build array of Storage Islands 
+    # Build array of Storage Islands
+    #TODO: check if destination is list, then build array from list 
     for entry in os.scandir('/home/pi/TestStorage'):
         islands.append(entry.path)
         
@@ -90,12 +99,18 @@ if __name__ == '__main__':
     
     
    
-    # TODO: Implement checksum after rsync complete -- hashlib?
+    # TODO: Implement checksum after rsync complete -- hashlib? ALSO: consolidate for loops 
     for file in files:
         file.originalMD5 = file.generateHash(file.fileName)
         print(file.originalMD5)
         
     
-    
+    for file in files:
+        file.makeCopyPath()
+        print(file.copyFullPath)
+        
+    for file in files:
+        file.copyMD5 = file.generateHash(file.copyFullPath)
+        print(file.copyMD5)
     
     
