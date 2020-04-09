@@ -20,6 +20,7 @@ class File(object):
         
         
     def moveFile(self):
+        print('Copying ', file.fileName,' to ', file.si)
         subprocess.call(['rsync','-r', self.fileName, self.si])
         
         
@@ -54,7 +55,7 @@ if __name__ == '__main__':
     
     # Add parameters positional/optional(--)
     parser.add_argument('source', help="Source")
-    #parser.add_argument('destination', help="Destination")
+    parser.add_argument('destination', help="Destination")
     #TODO: add rsync options (-avrz) -v verbose, -a archive, -z compress
     
     
@@ -62,15 +63,17 @@ if __name__ == '__main__':
     # Parse the arguments
     args = parser.parse_args()
     mySource = args.source
+    myDestination = args.destination
     print(args)
     
     buildList(mySource)
         
     # Build array of Storage Islands
     #TODO: check if destination is list, then build array from list 
-    for entry in os.scandir('/home/pi/TestStorage'):
+    for entry in os.scandir(myDestination):
         islands.append(entry.path)
-        
+    
+    print("Number of files to be transferred: ", len(files))
     print("Number of storage islands available: ",len(islands))
     
     currentIsland = 0   
@@ -92,24 +95,21 @@ if __name__ == '__main__':
         t = threading.Thread(target=file.moveFile)
         t.start()
         threads.append(t)
-        print('Copying ', file.fileName,' to ', file.si)
+        
         
     for thread in threads:
         thread.join()
+        
     
-    
+    print('\n')
    
-    # TODO: Implement checksum after rsync complete -- hashlib? ALSO: consolidate for loops 
+    # Generate md5 for original and copy
     for file in files:
         file.originalMD5 = file.generateHash(file.fileName)
         file.makeCopyPath()
         file.copyMD5 = file.generateHash(file.copyFullPath)
-        #print(file.originalMD5)
         
-        
-    
-    
-    for file in files:
+        # Compare md5 of orginal to copy
         if file.originalMD5 == file.copyMD5:
             print("MD5 checksum Matches")
             print("Original: ",file.fileName,"MD5 -- ", file.originalMD5)
@@ -118,6 +118,11 @@ if __name__ == '__main__':
             print("ERROR: MD5 checksum does NOT match")
             print("Original: ",file.fileName,"MD5 -- ", file.originalMD5)
             print("Copy: ",file.copyFullPath ,"MD5 -- ",file.copyMD5)
+
+        
+        
+    
+   
     
     
     
