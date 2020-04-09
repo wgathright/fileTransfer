@@ -102,15 +102,23 @@ if __name__ == '__main__':
     # TODO: Implement checksum after rsync complete -- hashlib? ALSO: consolidate for loops 
     for file in files:
         file.originalMD5 = file.generateHash(file.fileName)
-        print(file.originalMD5)
+        file.makeCopyPath()
+        file.copyMD5 = file.generateHash(file.copyFullPath)
+        #print(file.originalMD5)
+        
         
     
+    
     for file in files:
-        file.makeCopyPath()
-        print(file.copyFullPath)
-        
-    for file in files:
-        file.copyMD5 = file.generateHash(file.copyFullPath)
-        print(file.copyMD5)
+        if file.originalMD5 == file.copyMD5:
+            print("MD5 checksum Matches")
+            print("Original: ",file.fileName,"MD5 -- ", file.originalMD5)
+            print("Copy: ",file.copyFullPath ,"MD5 -- ",file.copyMD5, '\n')
+        else:
+            print("ERROR: MD5 checksum does NOT match")
+            print("Original: ",file.fileName,"MD5 -- ", file.originalMD5)
+            print("Copy: ",file.copyFullPath ,"MD5 -- ",file.copyMD5)
+    
+    
     
     
