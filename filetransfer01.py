@@ -40,10 +40,17 @@ class File(object):
         
 
 # Build array of file objects from source
-#TODO: allow function to accept a list of files instead of a directory
-def buildList(sourceDirectory):
-    for entry in os.scandir(sourceDirectory):
-        files.append(File(entry.path))
+def buildList(sourceInput):
+    if os.path.isdir(sourceInput):
+        for entry in os.scandir(sourceInput):
+            files.append(File(entry.path))
+    elif os.path.isfile(sourceInput):
+        with open(sourceInput) as fin:
+            for line in fin:
+                files.append(File(line.strip()))
+    else:
+        print("Source Input Read Error")
+        
 
 
 if __name__ == '__main__':
