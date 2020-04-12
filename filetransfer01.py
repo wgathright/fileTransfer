@@ -35,9 +35,8 @@ class File(object):
         tail = headTail[1]
         self.copyFullPath = self.si + '/' + tail
         
-            
-        
-        
+# End of File class 
+         
 
 # Build array of file objects from source
 def buildList(sourceInput):
@@ -50,6 +49,17 @@ def buildList(sourceInput):
                 files.append(File(line.strip()))
     else:
         print("Source Input Read Error")
+        
+        
+# Build array of Storage Islands from destination       
+def buildIslands(destinationInput):
+    if os.path.isdir(destinationInput):
+        for entry in os.scandir(destinationInput):
+            islands.append(entry.path)
+    elif os.path.isfile(destinationInput):
+        with open(destinationInput) as fin:
+            for line in fin:
+                islands.append(line.strip())
         
 
 
@@ -73,12 +83,11 @@ if __name__ == '__main__':
     myDestination = args.destination
     print(args)
     
+    
     buildList(mySource)
+     
+    buildIslands(myDestination)
         
-    # Build array of Storage Islands
-    #TODO: check if destination is list, then build array from list 
-    for entry in os.scandir(myDestination):
-        islands.append(entry.path)
     
     print("Number of files to be transferred: ", len(files))
     print("Number of storage islands available: ",len(islands))
