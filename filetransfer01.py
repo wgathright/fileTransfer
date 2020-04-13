@@ -3,6 +3,7 @@ import subprocess
 import os
 import threading
 import hashlib
+import time
 
 
 # Array of File objects
@@ -20,8 +21,13 @@ class File(object):
         
         
     def moveFile(self):
-        print('Copying ', file.fileName,' to ', file.si)
-        subprocess.call(['rsync','-r', self.fileName, self.si])
+        if isDebug:
+            print('Copying ', file.fileName,' to ', file.si)
+        
+        if isVerbose:
+            subprocess.call(['rsync','-avrz', self.fileName, self.si])
+        else:
+            subprocess.call(['rsync','-arz', self.fileName, self.si])
         
         
     def generateHash(self,fileToCheck):
@@ -48,7 +54,7 @@ def buildList(sourceInput):
             for line in fin:
                 files.append(File(line.strip()))
     else:
-        print("Source Input Read Error")
+        print("Source Input Error")
         
         
 # Build array of Storage Islands from destination       
@@ -60,10 +66,13 @@ def buildIslands(destinationInput):
         with open(destinationInput) as fin:
             for line in fin:
                 islands.append(line.strip())
+    else:
+        print("Destination Input Error")
         
 
 
 if __name__ == '__main__':
+
     
     # Initialize the argument parser
     parser = argparse.ArgumentParser(
@@ -71,9 +80,12 @@ if __name__ == '__main__':
         )
     
     # Add parameters positional/optional(--)
-    parser.add_argument('source', help="Source")
-    parser.add_argument('destination', help="Destination")
-    #TODO: add rsync options (-avrz) -v verbose, -a archive, -z compress
+    parser.add_argument('-s','--source', help="Source")
+    parser.add_argument('-d','--destination', help="Destination")
+    parser.add_argument('-v','--verbose',help="Verbose",action='store_true')
+    parser.add_argument('--debug',help="Debug",action='store_true')
+    parser.add_argument('--disablethread',help="Disable Threading",action='store_true')
+    
     
     
     
@@ -81,7 +93,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
     mySource = args.source
     myDestination = args.destination
-    print(args)
+    isVerbose = args.verbose
+    isDebug = args.debug
+    threadingDisabled = args.disablethread
+    
+    if isDebug:
+        print(args)
+        start = time.perf_counter()
     
     
     buildList(mySource)
@@ -93,7 +111,7 @@ if __name__ == '__main__':
     print("Number of storage islands available: ",len(islands))
     
     currentIsland = 0   
-    #TODO: if ('df -h' < 75%) ->  assign; else pass
+
     for file in files:
         
         if currentIsland < len(islands):
@@ -104,17 +122,20 @@ if __name__ == '__main__':
             file.si = islands[currentIsland]
         
     
-    
-    threads = []
-    # create threaded moveFile() 
-    for file in files:
-        t = threading.Thread(target=file.moveFile)
-        t.start()
-        threads.append(t)
+    if threadingDisabled:
+        print("Threading Disabled")
+        for file in files:
+            file.moveFile()
+    else:
+        threads = []
+        # create threaded moveFile() 
+        for file in files:
+            t = threading.Thread(target=file.moveFile)
+            t.start()
+            threads.append(t)
         
-        
-    for thread in threads:
-        thread.join()
+        for thread in threads:
+            thread.join()
         
     
     print('\n')
@@ -134,7 +155,12 @@ if __name__ == '__main__':
             print("ERROR: MD5 checksum does NOT match")
             print("Original: ",file.fileName,"MD5 -- ", file.originalMD5)
             print("Copy: ",file.copyFullPath ,"MD5 -- ",file.copyMD5)
-
+            
+            
+    
+    if isDebug:
+        finish = time.perf_counter()
+        print(f'Finished in {round(finish-start, 2)} second(s)')
         
         
     
